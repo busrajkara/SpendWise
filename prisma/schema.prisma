@@ -1,0 +1,63 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  username  String
+  createdAt DateTime @default(now())
+  
+  transactions Transaction[]
+  budgets      Budget[]
+}
+
+enum CategoryType {
+  INCOME
+  EXPENSE
+}
+
+model Category {
+  id   String       @id @default(uuid())
+  name String
+  type CategoryType
+  icon String
+
+  transactions Transaction[]
+  budgets      Budget[]
+}
+
+model Transaction {
+  id          String   @id @default(uuid())
+  userId      String
+  categoryId  String
+  amount      Decimal
+  date        DateTime
+  description String?
+  createdAt   DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id])
+  category Category @relation(fields: [categoryId], references: [id])
+}
+
+model Budget {
+  id         String  @id @default(uuid())
+  userId     String
+  categoryId String
+  limit      Decimal
+  month      Int
+  year       Int
+
+  user     User     @relation(fields: [userId], references: [id])
+  category Category @relation(fields: [categoryId], references: [id])
+
+  @@unique([userId, categoryId, month, year])
+}
