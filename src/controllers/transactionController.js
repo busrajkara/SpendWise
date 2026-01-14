@@ -2,7 +2,7 @@ const createCsvStringifier = require('csv-writer').createObjectCsvStringifier;
 const prisma = require('../prisma');
 
 const createTransaction = async (req, res) => {
-  const { amount, categoryId, date, description } = req.body;
+  const { amount, categoryId, date, description, isRecurring, recurringInterval } = req.body;
   const userId = req.user.id;
 
   if (!amount || amount <= 0) {
@@ -28,6 +28,8 @@ const createTransaction = async (req, res) => {
         categoryId,
         date: new Date(date),
         description,
+        isRecurring: Boolean(isRecurring),
+        recurringInterval: isRecurring ? recurringInterval || 'MONTHLY' : null,
         userId,
       },
     });

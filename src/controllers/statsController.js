@@ -1,5 +1,89 @@
 const prisma = require('../prisma');
 
+const getForecast = async (req, res) => {
+  const userId = req.user.id;
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth();
+  const today = now.getDate();
+
+  try {
+    const startOfMonth = new Date(currentYear, currentMonth, 1);
+    const endOfToday = new Date(currentYear, currentMonth, today, 23, 59, 59, 999);
+
+    const currentAgg = await prisma.transaction.aggregate({
+      _sum: { amount: true },
+      where: {
+        userId,
+        date: {
+          gte: startOfMonth,
+          lte: endOfToday,
+        },
+        category: {
+          type: 'EXPENSE',
+        },
+      },
+    });
+
+    const currentSpending = parseFloat(currentAgg._sum.amount || 0);
+    const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+    const dailyAverage = currentSpending / today || 0;
+    const predictedSpending = dailyAverage * daysInMonth;
+
+    const budgets = await prisma.budget.findMany({
+      where: {
+        userId,
+        month: currentMonth + 1,
+        year: currentYear,
+      },
+    });
+
+    const totalBudget = budgets.reduce((sum, b) => sum + parseFloat(b.limit), 0);
+    const remainingBudget = totalBudget - predictedSpending;
+
+    const lastMonthDate = new Date(currentYear, currentMonth - 1, 1);
+    const lastMonthYear = lastMonthDate.getFullYear();
+    const lastMonth = lastMonthDate.getMonth();
+
+    const startOfLastMonth = new Date(lastMonthYear, lastMonth, 1);
+    const endOfLastPeriod = new Date(lastMonthYear, lastMonth, today, 23, 59, 59, 999);
+
+    const lastAgg = await prisma.transaction.aggregate({
+      _sum: { amount: true },
+      where: {
+        userId,
+        date: {
+          gte: startOfLastMonth,
+          lte: endOfLastPeriod,
+        },
+        category: {
+          type: 'EXPENSE',
+        },
+      },
+    });
+
+    const lastPeriodSpending = parseFloat(lastAgg._sum.amount || 0);
+
+    let percentageChange = 0;
+    if (lastPeriodSpending > 0) {
+      percentageChange = ((currentSpending - lastPeriodSpending) / lastPeriodSpending) * 100;
+    }
+
+    res.json({
+      currentSpending,
+      predictedSpending,
+      remainingBudget,
+      dailyAverage,
+      totalBudget,
+      lastPeriodSpending,
+      percentageChange,
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: 'Failed to fetch forecast stats' });
+  }
+};
+
 const getSummary = async (req, res) => {
   const userId = req.user.id;
   const { month, year } = req.query;

@@ -7,6 +7,7 @@ const transactionRoutes = require('./routes/transactionRoutes');
 const statsRoutes = require('./routes/statsRoutes');
 const budgetRoutes = require('./routes/budgetRoutes');
 const protect = require('./middleware/authMiddleware');
+const { scheduleRecurringTransactionsJob } = require('./services/cronService');
 
 dotenv.config();
 
@@ -30,4 +31,5 @@ app.get('/api/health', protect, (req, res) => {
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
+  scheduleRecurringTransactionsJob();
 });

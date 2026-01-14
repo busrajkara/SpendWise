@@ -19,6 +19,7 @@ const Transactions = () => {
     categoryId: '',
     date: new Date().toISOString().split('T')[0],
     description: '',
+    isRecurring: false,
   });
   const [modalError, setModalError] = useState('');
 
@@ -86,13 +87,17 @@ const Transactions = () => {
     setModalError('');
 
     try {
-      await api.post('/transactions', formData);
+      await api.post('/transactions', {
+        ...formData,
+        recurringInterval: formData.isRecurring ? 'MONTHLY' : null,
+      });
       setIsModalOpen(false);
       setFormData({
         amount: '',
         categoryId: '',
         date: new Date().toISOString().split('T')[0],
         description: '',
+        isRecurring: false,
       });
       fetchData(); // Refresh list
     } catch (err) {
@@ -184,7 +189,16 @@ const Transactions = () => {
                       <span>{t.category.name}</span>
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-slate-300">{t.description || '-'}</td>
+                  <td className="px-6 py-4 text-slate-300">
+                    <div className="flex items-center space-x-2">
+                      <span>{t.description || '-'}</span>
+                      {t.isRecurring && (
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-indigo-600/20 text-indigo-300 border border-indigo-500/40">
+                          Otomatik
+                        </span>
+                      )}
+                    </div>
+                  </td>
                   <td className={`px-6 py-4 font-medium ${t.category.type === 'INCOME' ? 'text-emerald-500' : 'text-red-500'}`}>
                     {t.category.type === 'INCOME' ? '+' : '-'}₺{Math.abs(t.amount).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}
                   </td>
@@ -283,6 +297,23 @@ const Transactions = () => {
                   onChange={handleInputChange}
                   className="w-full bg-slate-800 border-slate-700 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                 />
+              </div>
+
+              <div className="flex items-center justify-between">
+                <label className="flex items-center space-x-2 text-sm text-slate-300">
+                  <input
+                    type="checkbox"
+                    checked={formData.isRecurring}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        isRecurring: e.target.checked,
+                      }))
+                    }
+                    className="h-4 w-4 rounded border-slate-600 bg-slate-800 text-indigo-500 focus:ring-indigo-500"
+                  />
+                  <span>Her ay tekrarla?</span>
+                </label>
               </div>
 
               <div className="pt-4">

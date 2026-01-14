@@ -1,5 +1,6 @@
 const express = require('express');
 const {
+  getForecast,
   getSummary,
   getCategoryBreakdown,
   getDailyTrends,
@@ -11,6 +12,7 @@ const router = express.Router();
 
 router.use(protect); // Protect all stats routes
 
+router.get('/forecast', getForecast);
 router.get('/summary', getSummary);
 router.get('/categories', getCategoryBreakdown);
 router.get('/trends', getDailyTrends);
