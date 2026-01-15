@@ -6,6 +6,7 @@ const useDashboardStats = () => {
   const [categoryBreakdown, setCategoryBreakdown] = useState([]);
   const [dailyTrends, setDailyTrends] = useState([]);
   const [forecast, setForecast] = useState(null);
+  const [budgetStatus, setBudgetStatus] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -13,17 +14,19 @@ const useDashboardStats = () => {
     const fetchStats = async () => {
       try {
         setLoading(true);
-        const [summaryRes, categoriesRes, trendsRes, forecastRes] = await Promise.all([
+        const [summaryRes, categoriesRes, trendsRes, forecastRes, budgetsRes] = await Promise.all([
           api.get('/stats/summary'),
           api.get('/stats/categories'),
           api.get('/stats/trends'),
           api.get('/stats/forecast'),
+          api.get('/stats/budgets-status'),
         ]);
 
         setSummary(summaryRes.data);
         setCategoryBreakdown(categoriesRes.data);
         setDailyTrends(trendsRes.data);
         setForecast(forecastRes.data);
+        setBudgetStatus(budgetsRes.data);
         setError(null);
       } catch (err) {
         setError('Failed to load dashboard data');
@@ -35,7 +38,7 @@ const useDashboardStats = () => {
     fetchStats();
   }, []);
 
-  return { summary, categoryBreakdown, dailyTrends, forecast, loading, error };
+  return { summary, categoryBreakdown, dailyTrends, forecast, budgetStatus, loading, error };
 };
 
 export default useDashboardStats;

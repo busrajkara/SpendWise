@@ -7,7 +7,7 @@ import { useAuth } from '../context/AuthContext';
 const COLORS = ['#6366f1', '#ec4899', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#06b6d4', '#14b8a6'];
 
 const Dashboard = () => {
-  const { summary, categoryBreakdown, dailyTrends, forecast, loading, error } = useDashboardStats();
+  const { summary, categoryBreakdown, dailyTrends, forecast, budgetStatus, loading, error } = useDashboardStats();
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -21,6 +21,17 @@ const Dashboard = () => {
     dailyTrends.length > 0;
 
   const isEmpty = !hasAnyActivity;
+
+  const hasBudgetData = Array.isArray(budgetStatus) && budgetStatus.length > 0;
+
+  const alertBudget = hasBudgetData
+    ? budgetStatus.reduce((max, item) => {
+        if (!max) return item;
+        return item.percentage > max.percentage ? item : max;
+      }, null)
+    : null;
+
+  const hasCriticalBudget = alertBudget && alertBudget.percentage > 90;
 
   if (loading) {
     return (
@@ -81,6 +92,29 @@ const Dashboard = () => {
         </div>
       ) : (
         <>
+      <div
+        className={`mb-4 rounded-xl border px-4 py-3 text-sm ${
+          hasCriticalBudget
+            ? 'border-red-500/40 bg-red-500/10 text-red-100'
+            : 'border-emerald-500/40 bg-emerald-500/10 text-emerald-100'
+        }`}
+      >
+        {hasCriticalBudget ? (
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5" />
+              <span>
+                ⚠️ Alert: You have exceeded 90% of your {alertBudget.category} budget!
+              </span>
+            </div>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <Wallet className="w-5 h-5" />
+            <span>✅ Your finances are on track. Keep it up!</span>
+          </div>
+        )}
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg">
           <div className="flex items-center justify-between">
