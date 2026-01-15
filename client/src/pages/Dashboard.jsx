@@ -1,5 +1,6 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, AreaChart, Area, XAxis, YAxis, CartesianGrid } from 'recharts';
-import { ArrowUpCircle, ArrowDownCircle, Wallet, Loader2, AlertTriangle } from 'lucide-react';
+import { ArrowUpCircle, ArrowDownCircle, Wallet, Loader2, AlertTriangle, Info, Sparkles, PlusCircle, MinusCircle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import useDashboardStats from '../hooks/useDashboardStats';
 import { useAuth } from '../context/AuthContext';
 
@@ -8,6 +9,18 @@ const COLORS = ['#6366f1', '#ec4899', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444'
 const Dashboard = () => {
   const { summary, categoryBreakdown, dailyTrends, forecast, loading, error } = useDashboardStats();
   const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const hour = new Date().getHours();
+  const greeting =
+    hour < 12 ? 'Good Morning' : hour < 18 ? 'Good Afternoon' : 'Good Evening';
+
+  const hasAnyActivity =
+    summary.totalIncome !== 0 ||
+    summary.totalExpenses !== 0 ||
+    dailyTrends.length > 0;
+
+  const isEmpty = !hasAnyActivity;
 
   if (loading) {
     return (
@@ -28,13 +41,50 @@ const Dashboard = () => {
   return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-white">Hoş geldin, {user?.username} 👋</h1>
-        <p className="text-slate-400">İşte finansal genel bakışın</p>
+        <h1 className="text-2xl font-bold text-white">
+          {greeting}, {user?.username || 'there'} 👋
+        </h1>
+        <p className="text-slate-400">
+          Here is your financial summary.
+        </p>
       </div>
+
+      {isEmpty ? (
+        <div className="flex flex-col items-center justify-center py-16 space-y-8">
+          <div className="w-20 h-20 rounded-full bg-slate-900 border border-slate-700 flex items-center justify-center">
+            <Sparkles className="w-10 h-10 text-indigo-400" />
+          </div>
+          <div className="text-center space-y-2 max-w-md">
+            <h2 className="text-xl font-semibold text-white">
+              Your financial journey starts here!
+            </h2>
+            <p className="text-slate-400">
+              Add your first income or expense to see the magic.
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-4 mt-4">
+            <button
+              onClick={() => navigate('/transactions?quick=income')}
+              className="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-lg shadow-lg shadow-emerald-500/20 transition-transform duration-200 hover:-translate-y-0.5"
+            >
+              <PlusCircle className="w-6 h-6 mr-2" />
+              Add Income
+            </button>
+            <button
+              onClick={() => navigate('/transactions?quick=expense')}
+              className="inline-flex items-center justify-center px-6 py-3 rounded-xl bg-red-600 hover:bg-red-500 text-white font-semibold text-lg shadow-lg shadow-red-500/20 transition-transform duration-200 hover:-translate-y-0.5"
+            >
+              <MinusCircle className="w-6 h-6 mr-2" />
+              Add Expense
+            </button>
+          </div>
+        </div>
+      ) : (
+        <>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-sm">
+        <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-slate-400">Toplam Gelir</p>
@@ -48,7 +98,7 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-sm">
+        <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg">
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-slate-400">Toplam Gider</p>
@@ -62,10 +112,19 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-sm">
+        <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-slate-400">Mevcut Bakiye</p>
+              <div className="flex items-center space-x-2">
+                <p className="text-sm font-medium text-slate-400">Total Balance</p>
+                <div className="relative group">
+                  <Info className="w-4 h-4 text-slate-500 group-hover:text-slate-200 cursor-pointer" />
+                  <div className="absolute left-0 mt-2 w-56 rounded-lg bg-slate-900 border border-slate-700 shadow-lg px-3 py-2 text-xs text-slate-200 opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity duration-200 z-20">
+                    <p>Total Income: ${summary.totalIncome.toFixed(2)}</p>
+                    <p>Total Expenses: ${summary.totalExpenses.toFixed(2)}</p>
+                  </div>
+                </div>
+              </div>
               <p className={`text-2xl font-bold mt-1 ${summary.netBalance >= 0 ? 'text-indigo-500' : 'text-red-500'}`}>
                 ${summary.netBalance.toFixed(2)}
               </p>
@@ -80,7 +139,7 @@ const Dashboard = () => {
       {/* Analiz Section */}
       {forecast && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-sm col-span-2 lg:col-span-2">
+          <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg col-span-2 lg:col-span-2">
             <h2 className="text-lg font-semibold text-white mb-2">Akıllı Analiz</h2>
             <p className="text-sm text-slate-400 mb-4">Ay sonu tahmini ve harcama karşılaştırması</p>
 
@@ -130,7 +189,7 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-sm">
+          <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg">
             <h3 className="text-lg font-semibold text-white mb-3">Geçen Ay Karşılaştırma</h3>
             <p className="text-sm text-slate-400 mb-4">
               Bu ayın şu ana kadarki harcaması ile geçen ayın aynı dönemi karşılaştırması.
@@ -178,7 +237,7 @@ const Dashboard = () => {
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Daily Trends Chart */}
-        <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-sm">
+        <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg">
           <h2 className="text-lg font-semibold text-white mb-4">Harcama Trendleri (Son 30 Gün)</h2>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
@@ -220,7 +279,7 @@ const Dashboard = () => {
         </div>
 
         {/* Category Breakdown Chart */}
-        <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-sm">
+        <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg">
           <h2 className="text-lg font-semibold text-white mb-4">Kategoriye Göre Giderler</h2>
           <div className="flex flex-col md:flex-row items-center h-80">
             <div className="w-full md:w-1/2 h-full">
@@ -273,6 +332,8 @@ const Dashboard = () => {
           </div>
         </div>
       </div>
+      </>
+      )}
     </div>
   );
 };

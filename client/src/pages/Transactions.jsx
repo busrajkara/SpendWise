@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Plus, Search, Trash2, X, Loader2, Download } from 'lucide-react';
 import api from '../services/api';
 
@@ -22,10 +23,21 @@ const Transactions = () => {
     isRecurring: false,
   });
   const [modalError, setModalError] = useState('');
+  const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchData();
   }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const quick = params.get('quick');
+    if (quick && !isModalOpen) {
+      setIsModalOpen(true);
+      navigate('/transactions', { replace: true });
+    }
+  }, [location.search, isModalOpen, navigate]);
 
   const fetchData = async () => {
     try {
