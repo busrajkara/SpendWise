@@ -109,14 +109,12 @@ const getSummary = async (req, res) => {
       };
     }
 
-    // Get all categories to know which are INCOME and which are EXPENSE
     const categories = await prisma.category.findMany();
     const categoryTypeMap = {};
     categories.forEach((cat) => {
       categoryTypeMap[cat.id] = cat.type;
     });
 
-    // Group transactions by categoryId and sum amounts
     const aggregations = await prisma.transaction.groupBy({
       by: ['categoryId'],
       _sum: {
@@ -187,10 +185,6 @@ const getCategoryBreakdown = async (req, res) => {
     const breakdown = aggregations
       .map((agg) => {
         const category = categoryMap[agg.categoryId];
-        // Filter only for EXPENSE type as per typical dashboard breakdown, 
-        // but user asked for "list of categories". 
-        // Usually pie charts show expenses breakdown. 
-        // Let's include only EXPENSE for now as it makes most sense for "spent in each".
         if (category && category.type === 'EXPENSE') {
           return {
             category: category.name,
@@ -201,7 +195,7 @@ const getCategoryBreakdown = async (req, res) => {
         return null;
       })
       .filter((item) => item !== null)
-      .sort((a, b) => b.total - a.total); // Sort by highest spend
+      .sort((a, b) => b.total - a.total);
 
     res.json(breakdown);
   } catch (error) {
@@ -212,18 +206,13 @@ const getCategoryBreakdown = async (req, res) => {
 
 const getDailyTrends = async (req, res) => {
   const userId = req.user.id;
-  const { days = 30 } = req.query; // default to 30 days
+  const { days = 30 } = req.query;
 
   try {
     const endDate = new Date();
     const startDate = new Date();
     startDate.setDate(endDate.getDate() - parseInt(days));
 
-    // We need to sum daily spending (Expenses only)
-    // Using $queryRaw to group by DATE(date)
-    
-    // Note: Prisma raw query returns BigInt for counts usually, but Decimal for sums. 
-    // We cast to proper types.
     const result = await prisma.$queryRaw`
       SELECT 
         DATE(t.date) as date, 
@@ -238,9 +227,8 @@ const getDailyTrends = async (req, res) => {
       ORDER BY DATE(t.date) ASC
     `;
 
-    // Format result
     const trends = result.map((row) => ({
-      date: row.date.toISOString().split('T')[0], // Format YYYY-MM-DD
+      date: row.date.toISOString().split('T')[0],
       total: parseFloat(row.total || 0),
     }));
 
@@ -258,7 +246,6 @@ const getBudgetStatus = async (req, res) => {
   const currentYear = now.getFullYear();
 
   try {
-    // 1. Get all budgets for the current month
     const budgets = await prisma.budget.findMany({
       where: {
         userId,
@@ -274,7 +261,6 @@ const getBudgetStatus = async (req, res) => {
       return res.json([]);
     }
 
-    // 2. Calculate total spent for each budget's category in the current month
     const startDate = new Date(currentYear, currentMonth - 1, 1);
     const endDate = new Date(currentYear, currentMonth, 0, 23, 59, 59, 999);
 

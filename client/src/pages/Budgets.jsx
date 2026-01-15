@@ -22,7 +22,6 @@ const Budgets = () => {
       setBudgets(budgetsRes.data);
       setCategories(categoriesRes.data);
     } catch (err) {
-      console.error('Error fetching data:', err);
     } finally {
       setLoading(false);
     }
@@ -45,7 +44,6 @@ const Budgets = () => {
       setFormData({ categoryId: '', limit: '' });
       fetchData();
     } catch (err) {
-      console.error('Error creating budget:', err);
       alert('Bütçe oluşturulurken bir hata oluştu');
     }
   };
@@ -120,7 +118,6 @@ const Budgets = () => {
         )}
       </div>
 
-      {/* Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="bg-slate-900 rounded-xl border border-slate-800 w-full max-w-md p-6 relative">

@@ -81,8 +81,6 @@ const Dashboard = () => {
         </div>
       ) : (
         <>
-
-      {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg">
           <div className="flex items-center justify-between">
@@ -136,7 +134,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Analiz Section */}
       {forecast && (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg col-span-2 lg:col-span-2">
@@ -234,9 +231,7 @@ const Dashboard = () => {
         </div>
       )}
 
-      {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Daily Trends Chart */}
         <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg">
           <h2 className="text-lg font-semibold text-white mb-4">Harcama Trendleri (Son 30 Gün)</h2>
           <div className="h-80">
@@ -278,7 +273,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Category Breakdown Chart */}
         <div className="bg-slate-900 p-6 rounded-xl border border-slate-800 shadow-sm transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg">
           <h2 className="text-lg font-semibold text-white mb-4">Kategoriye Göre Giderler</h2>
           <div className="flex flex-col md:flex-row items-center h-80">
@@ -306,8 +300,7 @@ const Dashboard = () => {
                 </PieChart>
                 </ResponsiveContainer>
             </div>
-            
-            {/* Legend */}
+
             <div className="w-full md:w-1/2 mt-4 md:mt-0 overflow-y-auto max-h-60 pr-2">
                 <div className="space-y-3">
                     {categoryBreakdown.map((item, index) => (

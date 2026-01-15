@@ -15,9 +15,8 @@ export const AuthProvider = ({ children }) => {
       const storedUser = localStorage.getItem('user');
       if (token && storedUser) {
         try {
-            setUser(JSON.parse(storedUser));
+          setUser(JSON.parse(storedUser));
         } catch (error) {
-          console.error("Auth check failed", error);
           localStorage.removeItem('token');
           localStorage.removeItem('user');
         }

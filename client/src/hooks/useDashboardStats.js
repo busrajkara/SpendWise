@@ -26,7 +26,6 @@ const useDashboardStats = () => {
         setForecast(forecastRes.data);
         setError(null);
       } catch (err) {
-        console.error('Error fetching dashboard stats:', err);
         setError('Failed to load dashboard data');
       } finally {
         setLoading(false);

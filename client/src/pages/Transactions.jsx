@@ -8,12 +8,10 @@ const Transactions = () => {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  
-  // Filter States
+
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
 
-  // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     amount: '',
@@ -49,7 +47,6 @@ const Transactions = () => {
       setTransactions(transactionsRes.data);
       setCategories(categoriesRes.data);
     } catch (err) {
-      console.error('Error fetching data:', err);
       setError('Veriler yüklenirken bir hata oluştu');
     } finally {
       setLoading(false);
@@ -62,7 +59,6 @@ const Transactions = () => {
         await api.delete(`/transactions/${id}`);
         setTransactions(transactions.filter(t => t.id !== id));
       } catch (err) {
-        console.error('Delete error:', err);
         alert('İşlem silinemedi');
       }
     }
@@ -81,7 +77,6 @@ const Transactions = () => {
       link.click();
       link.parentNode.removeChild(link);
     } catch (err) {
-      console.error('Download error:', err);
       alert('Rapor indirilemedi');
     }
   };
@@ -111,19 +106,17 @@ const Transactions = () => {
         description: '',
         isRecurring: false,
       });
-      fetchData(); // Refresh list
+      fetchData();
     } catch (err) {
-        console.error('Create transaction error:', err);
-        setModalError(err.response?.data?.warning || err.response?.data?.error || 'İşlem oluşturulamadı');
-        if (err.response?.status === 201 && err.response?.data?.warning) {
-             alert(`İşlem eklendi ancak: ${err.response.data.warning}`);
-             setIsModalOpen(false);
-             fetchData();
-        }
+      setModalError(err.response?.data?.warning || err.response?.data?.error || 'İşlem oluşturulamadı');
+      if (err.response?.status === 201 && err.response?.data?.warning) {
+        alert(`İşlem eklendi ancak: ${err.response.data.warning}`);
+        setIsModalOpen(false);
+        fetchData();
+      }
     }
   };
 
-  // Filter Logic
   const filteredTransactions = transactions.filter(t => {
     const matchesSearch = t.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = categoryFilter === 'all' || t.categoryId === categoryFilter;
@@ -154,7 +147,6 @@ const Transactions = () => {
         </div>
       </div>
 
-      {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4 bg-slate-900 p-4 rounded-xl border border-slate-800">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5" />
@@ -178,7 +170,6 @@ const Transactions = () => {
         </select>
       </div>
 
-      {/* Table */}
       <div className="bg-slate-900 rounded-xl border border-slate-800 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm text-slate-400">
@@ -236,7 +227,6 @@ const Transactions = () => {
         </div>
       </div>
 
-      {/* Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
           <div className="bg-slate-900 rounded-xl border border-slate-800 w-full max-w-md p-6 shadow-xl relative">
