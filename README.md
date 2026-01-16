@@ -178,7 +178,22 @@ SpendWise helps you take control of your money with automation, analytics, and c
 
 ---
 
-## ⚠️ Known Issues / To-Do
+## ⚠️ Known Issues
 
-- **Database Connection**: The database connection needs to be re-established. The Docker container must be restarted to ensure all new models (Goals) are synced correctly.
-- **Prisma Migration**: Run `npx prisma migrate dev` after restarting the database to apply pending schema changes.
+- **Database Connection**: ⚠️ Database connection requires Docker restart (WIP).
+
+---
+
+## 🇹🇷 Türkçe Dokümantasyon
+
+**SpendWise**, harcamalarınızı takip etmenize, tekrarlayan işlemleri otomatikleştirmenize ve yapay zeka destekli analizlerle finansal durumunuzu yönetmenize yardımcı olan modern bir kişisel finans asistanıdır.
+
+### 🚀 Yeni Özellikler (PRO)
+
+- **Çoklu Para Birimi Desteği**: USD, EUR ve TL seçenekleriyle küresel takip.
+- **Tasarruf Hedefleri**: Hedef belirleyin (örn. "Yaz Tatili") ve ilerlemenizi izleyin.
+- **Harcama Isı Haritası**: Son 30 günlük harcama yoğunluğunuzu görselleştirin.
+
+### ⚠️ Bilinen Sorunlar
+
+- **Veritabanı Bağlantısı**: Veritabanı bağlantısı için Docker yeniden başlatılmalı (WIP).
