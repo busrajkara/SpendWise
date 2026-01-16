@@ -10,7 +10,7 @@ const protect = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
-router.use(protect); // Protect all transaction routes
+router.use(protect);
 
 router.get('/export', exportTransactions);
 router.post('/', createTransaction);

@@ -2,7 +2,7 @@ const createCsvStringifier = require('csv-writer').createObjectCsvStringifier;
 const prisma = require('../prisma');
 
 const createTransaction = async (req, res) => {
-  const { amount, categoryId, date, description, isRecurring, recurringInterval } = req.body;
+  const { amount, categoryId, date, description, isRecurring, recurringInterval, currency } = req.body;
   const userId = req.user.id;
 
   if (!amount || amount <= 0) {
@@ -30,11 +30,11 @@ const createTransaction = async (req, res) => {
         description,
         isRecurring: Boolean(isRecurring),
         recurringInterval: isRecurring ? recurringInterval || 'MONTHLY' : null,
+        currency: currency || 'USD',
         userId,
       },
     });
 
-    // Check for budget warning
     const transactionDate = new Date(date);
     const month = transactionDate.getMonth() + 1;
     const year = transactionDate.getFullYear();
@@ -75,7 +75,6 @@ const createTransaction = async (req, res) => {
 
     res.status(201).json(response);
   } catch (error) {
-    console.error(error);
     res.status(500).json({ error: 'Failed to create transaction' });
   }
 };
@@ -107,14 +106,13 @@ const getTransactions = async (req, res) => {
     });
     res.json(transactions);
   } catch (error) {
-    console.error(error);
     res.status(500).json({ error: 'Failed to fetch transactions' });
   }
 };
 
 const updateTransaction = async (req, res) => {
   const { id } = req.params;
-  const { amount, categoryId, date, description } = req.body;
+  const { amount, categoryId, date, description, currency } = req.body;
   const userId = req.user.id;
 
   try {
@@ -146,12 +144,12 @@ const updateTransaction = async (req, res) => {
         categoryId,
         date: date ? new Date(date) : undefined,
         description,
+        currency,
       },
     });
 
     res.json(updatedTransaction);
   } catch (error) {
-    console.error(error);
     res.status(500).json({ error: 'Failed to update transaction' });
   }
 };
@@ -179,7 +177,6 @@ const deleteTransaction = async (req, res) => {
 
     res.json({ message: 'Transaction deleted successfully' });
   } catch (error) {
-    console.error(error);
     res.status(500).json({ error: 'Failed to delete transaction' });
   }
 };
@@ -203,6 +200,7 @@ const exportTransactions = async (req, res) => {
         { id: 'date', title: 'Date' },
         { id: 'category', title: 'Category' },
         { id: 'amount', title: 'Amount' },
+        { id: 'currency', title: 'Currency' },
         { id: 'type', title: 'Type' },
         { id: 'description', title: 'Description' },
       ],
@@ -212,6 +210,7 @@ const exportTransactions = async (req, res) => {
       date: t.date.toISOString().split('T')[0],
       category: t.category.name,
       amount: t.amount,
+      currency: t.currency || 'USD',
       type: t.category.type,
       description: t.description || '',
     }));
@@ -224,7 +223,6 @@ const exportTransactions = async (req, res) => {
     res.setHeader('Content-Disposition', 'attachment; filename=transactions.csv');
     res.send(csvContent);
   } catch (error) {
-    console.error(error);
     res.status(500).json({ error: 'Failed to export transactions' });
   }
 };

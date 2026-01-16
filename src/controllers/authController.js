@@ -33,7 +33,6 @@ const register = async (req, res) => {
 
     res.status(201).json(userWithoutPassword);
   } catch (error) {
-    console.error('Register error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };
@@ -73,7 +72,6 @@ const login = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Login error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 };

@@ -15,6 +15,7 @@ model User {
   
   transactions Transaction[]
   budgets      Budget[]
+  goals        Goal[]
 }
 
 enum CategoryType {
@@ -40,11 +41,22 @@ model Transaction {
   date              DateTime
   description       String?
   isRecurring       Boolean  @default(false)
-  recurringInterval String?
+  recurringInterval String? // "DAILY", "WEEKLY", "MONTHLY", "YEARLY"
+  currency          String   @default("USD") // "USD", "EUR", "TL"
   createdAt         DateTime @default(now())
 
   user     User     @relation(fields: [userId], references: [id])
   category Category @relation(fields: [categoryId], references: [id])
+}
+
+model Goal {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  title        String
+  targetAmount Decimal
+  deadline     DateTime
+  createdAt    DateTime @default(now())
 }
 
 model Budget {

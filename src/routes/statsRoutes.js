@@ -10,7 +10,7 @@ const protect = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
-router.use(protect); // Protect all stats routes
+router.use(protect);
 
 router.get('/forecast', getForecast);
 router.get('/summary', getSummary);

@@ -44,19 +44,19 @@ const Budgets = () => {
       setFormData({ categoryId: '', limit: '' });
       fetchData();
     } catch (err) {
-      alert('Bütçe oluşturulurken bir hata oluştu');
+      alert('An error occurred while creating the budget');
     }
   };
 
   const getProgressColor = (percentage) => {
     if (percentage < 70) return 'bg-emerald-500';
-    if (percentage < 90) return 'bg-yellow-500';
+    if (percentage < 90) return 'bg-orange-500';
     return 'bg-red-500';
   };
 
   const getTextColor = (percentage) => {
     if (percentage < 70) return 'text-emerald-500';
-    if (percentage < 90) return 'text-yellow-500';
+    if (percentage < 90) return 'text-orange-500';
     return 'text-red-500';
   };
 
@@ -71,13 +71,13 @@ const Budgets = () => {
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-white">Bütçeler</h1>
+        <h1 className="text-2xl font-bold text-white">Budgets</h1>
         <button
           onClick={() => setIsModalOpen(true)}
           className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg flex items-center space-x-2 transition-colors"
         >
           <Plus className="w-5 h-5" />
-          <span>Bütçe Belirle</span>
+          <span>Create Budget</span>
         </button>
       </div>
 
@@ -88,9 +88,12 @@ const Budgets = () => {
               <div>
                 <h3 className="text-lg font-semibold text-white">{budget.category}</h3>
                 <p className="text-slate-400 text-sm mt-1">
-                  Harcanan: <span className="text-white">₺{budget.spent.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</span>
+                  Spent:{' '}
+                  <span className="text-white">
+                    ${budget.spent.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                  </span>
                   {' / '}
-                  <span className="text-slate-500">₺{budget.limit.toLocaleString('tr-TR', { minimumFractionDigits: 2 })}</span>
+                  <span className="text-slate-500">${budget.limit.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
                 </p>
               </div>
               <div className={`text-xl font-bold ${getTextColor(budget.percentage)}`}>
@@ -106,14 +109,15 @@ const Budgets = () => {
             </div>
             
             <p className="text-sm text-slate-500 mt-3 text-right">
-              Kalan: ₺{Math.max(budget.remaining, 0).toLocaleString('tr-TR', { minimumFractionDigits: 2 })}
+              Remaining:{' '}
+              ${Math.max(budget.remaining, 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
             </p>
           </div>
         ))}
 
         {budgets.length === 0 && (
           <div className="col-span-full text-center py-12 text-slate-500 bg-slate-900/50 rounded-xl border border-slate-800 border-dashed">
-            Henüz belirlenmiş bir bütçe yok.
+            No budgets have been created yet.
           </div>
         )}
       </div>
@@ -128,18 +132,18 @@ const Budgets = () => {
               <X className="w-6 h-6" />
             </button>
 
-            <h2 className="text-xl font-bold text-white mb-6">Bütçe Belirle</h2>
+            <h2 className="text-xl font-bold text-white mb-6">Create Budget</h2>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Kategori</label>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Category</label>
                 <select
                   required
                   value={formData.categoryId}
                   onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
                   className="w-full bg-slate-800 border-slate-700 text-white rounded-lg px-3 py-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                 >
-                  <option value="">Seçiniz</option>
+                  <option value="">Select</option>
                   {categories
                     .filter(c => c.type === 'EXPENSE')
                     .map(cat => (
@@ -150,7 +154,7 @@ const Budgets = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-1">Limit (₺)</label>
+                <label className="block text-sm font-medium text-slate-300 mb-1">Limit</label>
                 <input
                   type="number"
                   required
@@ -167,7 +171,7 @@ const Budgets = () => {
                   type="submit"
                   className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-2 rounded-lg transition-colors"
                 >
-                  Kaydet
+                  Save
                 </button>
               </div>
             </form>

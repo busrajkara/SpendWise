@@ -1,5 +1,16 @@
 const prisma = require('../prisma');
 
+const EXCHANGE_RATES = {
+  'USD': 35,
+  'EUR': 38,
+  'TL': 1
+};
+
+const convertToTL = (amount, currency) => {
+  const rate = EXCHANGE_RATES[currency] || 1;
+  return amount * rate;
+};
+
 const getForecast = async (req, res) => {
   const userId = req.user.id;
   const now = new Date();
@@ -11,8 +22,7 @@ const getForecast = async (req, res) => {
     const startOfMonth = new Date(currentYear, currentMonth, 1);
     const endOfToday = new Date(currentYear, currentMonth, today, 23, 59, 59, 999);
 
-    const currentAgg = await prisma.transaction.aggregate({
-      _sum: { amount: true },
+    const transactions = await prisma.transaction.findMany({
       where: {
         userId,
         date: {
@@ -25,7 +35,10 @@ const getForecast = async (req, res) => {
       },
     });
 
-    const currentSpending = parseFloat(currentAgg._sum.amount || 0);
+    const currentSpending = transactions.reduce((sum, t) => {
+      return sum + convertToTL(parseFloat(t.amount), t.currency || 'USD');
+    }, 0);
+
     const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
     const dailyAverage = currentSpending / today || 0;
     const predictedSpending = dailyAverage * daysInMonth;
@@ -48,8 +61,7 @@ const getForecast = async (req, res) => {
     const startOfLastMonth = new Date(lastMonthYear, lastMonth, 1);
     const endOfLastPeriod = new Date(lastMonthYear, lastMonth, today, 23, 59, 59, 999);
 
-    const lastAgg = await prisma.transaction.aggregate({
-      _sum: { amount: true },
+    const lastTransactions = await prisma.transaction.findMany({
       where: {
         userId,
         date: {
@@ -62,7 +74,9 @@ const getForecast = async (req, res) => {
       },
     });
 
-    const lastPeriodSpending = parseFloat(lastAgg._sum.amount || 0);
+    const lastPeriodSpending = lastTransactions.reduce((sum, t) => {
+      return sum + convertToTL(parseFloat(t.amount), t.currency || 'USD');
+    }, 0);
 
     let percentageChange = 0;
     if (lastPeriodSpending > 0) {
@@ -79,7 +93,6 @@ const getForecast = async (req, res) => {
       percentageChange,
     });
   } catch (error) {
-    console.error(error);
     res.status(500).json({ error: 'Failed to fetch forecast stats' });
   }
 };
@@ -109,30 +122,21 @@ const getSummary = async (req, res) => {
       };
     }
 
-    const categories = await prisma.category.findMany();
-    const categoryTypeMap = {};
-    categories.forEach((cat) => {
-      categoryTypeMap[cat.id] = cat.type;
-    });
-
-    const aggregations = await prisma.transaction.groupBy({
-      by: ['categoryId'],
-      _sum: {
-        amount: true,
-      },
+    const transactions = await prisma.transaction.findMany({
       where,
+      include: {
+        category: true,
+      },
     });
 
     let totalIncome = 0;
     let totalExpenses = 0;
 
-    aggregations.forEach((agg) => {
-      const type = categoryTypeMap[agg.categoryId];
-      const amount = parseFloat(agg._sum.amount || 0);
-
-      if (type === 'INCOME') {
+    transactions.forEach((t) => {
+      const amount = convertToTL(parseFloat(t.amount), t.currency || 'USD');
+      if (t.category.type === 'INCOME') {
         totalIncome += amount;
-      } else if (type === 'EXPENSE') {
+      } else if (t.category.type === 'EXPENSE') {
         totalExpenses += amount;
       }
     });
@@ -145,7 +149,6 @@ const getSummary = async (req, res) => {
       netBalance,
     });
   } catch (error) {
-    console.error(error);
     res.status(500).json({ error: 'Failed to fetch summary stats' });
   }
 };
@@ -168,38 +171,38 @@ const getCategoryBreakdown = async (req, res) => {
       };
     }
 
-    const categories = await prisma.category.findMany();
-    const categoryMap = {};
-    categories.forEach((cat) => {
-      categoryMap[cat.id] = cat;
-    });
-
-    const aggregations = await prisma.transaction.groupBy({
-      by: ['categoryId'],
-      _sum: {
-        amount: true,
-      },
+    const transactions = await prisma.transaction.findMany({
       where,
+      include: {
+        category: true,
+      },
     });
 
-    const breakdown = aggregations
-      .map((agg) => {
-        const category = categoryMap[agg.categoryId];
-        if (category && category.type === 'EXPENSE') {
-          return {
-            category: category.name,
-            total: parseFloat(agg._sum.amount || 0),
-            icon: category.icon,
+    const categoryTotals = {};
+
+    transactions.forEach((t) => {
+      if (t.category.type === 'EXPENSE') {
+        const amount = convertToTL(parseFloat(t.amount), t.currency || 'USD');
+        if (!categoryTotals[t.category.name]) {
+          categoryTotals[t.category.name] = {
+            total: 0,
+            icon: t.category.icon,
           };
         }
-        return null;
-      })
-      .filter((item) => item !== null)
+        categoryTotals[t.category.name].total += amount;
+      }
+    });
+
+    const breakdown = Object.keys(categoryTotals)
+      .map((catName) => ({
+        category: catName,
+        total: categoryTotals[catName].total,
+        icon: categoryTotals[catName].icon,
+      }))
       .sort((a, b) => b.total - a.total);
 
     res.json(breakdown);
   } catch (error) {
-    console.error(error);
     res.status(500).json({ error: 'Failed to fetch category breakdown' });
   }
 };
@@ -213,28 +216,44 @@ const getDailyTrends = async (req, res) => {
     const startDate = new Date();
     startDate.setDate(endDate.getDate() - parseInt(days));
 
-    const result = await prisma.$queryRaw`
-      SELECT 
-        DATE(t.date) as date, 
-        SUM(t.amount) as total 
-      FROM "Transaction" t
-      JOIN "Category" c ON t."categoryId" = c.id
-      WHERE t."userId" = ${userId}
-        AND c.type = 'EXPENSE'
-        AND t.date >= ${startDate}
-        AND t.date <= ${endDate}
-      GROUP BY DATE(t.date)
-      ORDER BY DATE(t.date) ASC
-    `;
+    // Using raw SQL for date grouping but need to handle currency conversion manually or with complex SQL case
+    // Since we need to support specific rates, complex SQL might be brittle if rates change.
+    // Let's fetch data and aggregate in JS for consistency with other endpoints.
+    
+    const transactions = await prisma.transaction.findMany({
+      where: {
+        userId,
+        category: {
+          type: 'EXPENSE',
+        },
+        date: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
+    });
 
-    const trends = result.map((row) => ({
-      date: row.date.toISOString().split('T')[0],
-      total: parseFloat(row.total || 0),
-    }));
+    const dailyTotals = {};
+
+    transactions.forEach((t) => {
+      const dateKey = t.date.toISOString().split('T')[0];
+      const amount = convertToTL(parseFloat(t.amount), t.currency || 'USD');
+      
+      if (!dailyTotals[dateKey]) {
+        dailyTotals[dateKey] = 0;
+      }
+      dailyTotals[dateKey] += amount;
+    });
+
+    const trends = Object.keys(dailyTotals)
+      .map((date) => ({
+        date,
+        total: dailyTotals[date],
+      }))
+      .sort((a, b) => new Date(a.date) - new Date(b.date));
 
     res.json(trends);
   } catch (error) {
-    console.error(error);
     res.status(500).json({ error: 'Failed to fetch daily trends' });
   }
 };
@@ -266,10 +285,7 @@ const getBudgetStatus = async (req, res) => {
 
     const statusList = await Promise.all(
       budgets.map(async (budget) => {
-        const aggregations = await prisma.transaction.aggregate({
-          _sum: {
-            amount: true,
-          },
+        const transactions = await prisma.transaction.findMany({
           where: {
             userId,
             categoryId: budget.categoryId,
@@ -280,7 +296,10 @@ const getBudgetStatus = async (req, res) => {
           },
         });
 
-        const spent = parseFloat(aggregations._sum.amount || 0);
+        const spent = transactions.reduce((sum, t) => {
+          return sum + convertToTL(parseFloat(t.amount), t.currency || 'USD');
+        }, 0);
+
         const limit = parseFloat(budget.limit);
         const percentage = (spent / limit) * 100;
         const remaining = limit - spent;
@@ -298,12 +317,12 @@ const getBudgetStatus = async (req, res) => {
 
     res.json(statusList);
   } catch (error) {
-    console.error(error);
     res.status(500).json({ error: 'Failed to fetch budget status' });
   }
 };
 
 module.exports = {
+  getForecast,
   getSummary,
   getCategoryBreakdown,
   getDailyTrends,

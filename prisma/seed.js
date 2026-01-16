@@ -14,13 +14,10 @@ async function main() {
       data: category,
     });
   }
-
-  console.log('Categories seeded successfully');
 }
 
 main()
-  .catch((e) => {
-    console.error(e);
+  .catch(() => {
     process.exit(1);
   })
   .finally(async () => {

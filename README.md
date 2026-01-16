@@ -17,11 +17,23 @@ SpendWise is an AI-augmented personal finance assistant that helps you track exp
 - 🔁 **Recurring Transactions (Automation)**  
   Automated monthly income and expense generation powered by **Node-Cron**. Mark a transaction as recurring and SpendWise will automatically create the corresponding entry each month on the appropriate day, with safeguards to prevent duplicate creation on server restarts.
 
-- 📊 **Dynamic Dashboard & Visual Analytics**  
-  Interactive charts built with **Recharts** provide a clear overview of your financial health: category breakdowns, daily trends, and a dedicated “Smart Insights” section for forecasts and comparisons.
+- 🎯 **Savings Goals**  
+  Set custom financial targets (e.g., "Summer Vacation") with specific deadlines. Visualize your progress with dynamic bars funded by your net balance.
 
-- 💰 **Budget Management & Threshold Alerts**  
-  Define category-based monthly budget limits and monitor your usage through visual progress indicators. Color-coded alerts (green / yellow / red) help you quickly see which categories are safe, approaching limits, or overspending.
+- 🔥 **Spending Heatmap**  
+  A GitHub-style "intensity grid" on the dashboard that visualizes your daily spending habits over the last 30 days.
+
+- 💵 **Multi-Currency Support**  
+  Seamlessly track expenses in **USD**, **EUR**, or **TL**. SpendWise adapts to your global financial needs, allowing you to select the currency for each transaction.
+
+- 📄 **Professional PDF Reporting**  
+  Generate and download comprehensive monthly financial reports in PDF format with a single click, perfect for archiving or sharing with advisors.
+
+- 💰 **Enhanced Category Budgeting**  
+  Set specific budget limits for each category and visualize your spending with color-coded progress bars (Green → Orange → Red). Stay informed with "Remaining Budget" indicators to avoid overspending.
+
+- � **Dynamic Dashboard & Visual Analytics**  
+  Interactive charts built with **Recharts** provide a clear overview of your financial health: category breakdowns, daily trends, and a dedicated “Smart Insights” section for forecasts and comparisons.
 
 - 🔐 **Secure Authentication**  
   JWT-based authentication with protected API routes ensures that your financial data is accessible only to you. Tokens are validated on each request to sensitive endpoints.
@@ -129,10 +141,10 @@ Open this URL in your browser to start using SpendWise.
   - Comparison with the same period from the previous month  
 
 - **Budgets & Alerts**  
-  Set a monthly budget per category and track how much of that budget has been used. Visual indicators warn you when you are close to or above your limit.
+  Set a monthly budget per category and track how much of that budget has been used. Visual indicators (Green → Orange → Red) warn you when you are close to or above your limit.
 
-- **CSV Export**  
-  Download your full transaction history as a CSV file for archiving, sharing, or further analysis in spreadsheet tools.
+- **Data Export (CSV & PDF)**  
+  Download your full transaction history as a CSV file or generate a professional PDF report for offline analysis and archiving.
 
 ---
 
@@ -163,3 +175,10 @@ If you have suggestions, ideas, or want to contribute, feel free to open an issu
 ---
 
 SpendWise helps you take control of your money with automation, analytics, and clear insights. 💸✨
+
+---
+
+## ⚠️ Known Issues / To-Do
+
+- **Database Connection**: The database connection needs to be re-established. The Docker container must be restarted to ensure all new models (Goals) are synced correctly.
+- **Prisma Migration**: Run `npx prisma migrate dev` after restarting the database to apply pending schema changes.

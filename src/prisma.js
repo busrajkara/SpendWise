@@ -3,7 +3,6 @@ const { PrismaPg } = require('@prisma/adapter-pg');
 const { PrismaClient } = require('@prisma/client');
 require('dotenv').config();
 
-// Use APP_DATABASE_URL if available (for pg driver), otherwise DATABASE_URL
 const connectionString = process.env.APP_DATABASE_URL || process.env.DATABASE_URL;
 
 const pool = new Pool({ connectionString });

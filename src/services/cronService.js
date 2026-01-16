@@ -61,7 +61,6 @@ const scheduleRecurringTransactionsJob = () => {
         });
       }
     } catch (error) {
-      console.error('Recurring transactions cron error:', error);
     }
   });
 };
@@ -69,4 +68,3 @@ const scheduleRecurringTransactionsJob = () => {
 module.exports = {
   scheduleRecurringTransactionsJob,
 };
-
